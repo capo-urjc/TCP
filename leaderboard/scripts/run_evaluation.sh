@@ -1,5 +1,5 @@
 #!/bin/bash
-export CARLA_ROOT=/mnt/raid/datasets/Carla-Leaderboard/v0.9.10/CARLA
+export CARLA_ROOT=/raid/code/CARLA_Leaderboard/v0.9.10.1/
 export CARLA_SERVER=${CARLA_ROOT}/CarlaUE4.sh
 export PYTHONPATH=$PYTHONPATH:${CARLA_ROOT}/PythonAPI
 export PYTHONPATH=$PYTHONPATH:${CARLA_ROOT}/PythonAPI/carla
@@ -21,7 +21,7 @@ export RESUME=True
 export ROUTES=leaderboard/data/evaluation_routes/routes_lav_valid.xml
 export TEAM_AGENT=team_code/tcp_agent.py
 # export TEAM_CONFIG=/mnt/raid/code/dmariaa/TCP/log/TCP/best_epoch=29-val_loss=0.705.ckpt
-export TEAM_CONFIG=/mnt/raid/code/dmariaa/TCP/log/TCP/best_epoch=59-val_loss=0.449.ckpt
+export TEAM_CONFIG=/home/iramirez/Pytorch/TCP/log/TCP/best_epoch=50-val_loss=0.429.ckpt
 export CHECKPOINT_ENDPOINT=results_TCP.json
 export SCENARIOS=leaderboard/data/scenarios/all_towns_traffic_scenarios.json
 export SAVE_PATH=data/results_TCP/

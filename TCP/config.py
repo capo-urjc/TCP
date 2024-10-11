@@ -9,6 +9,7 @@ class GlobalConfig:
 
     # data root
     root_dir_all = "tcp_carla_data"
+    # root_dir_all = "/raid/datasets/CARLA/tcp_carla_data"
 
     # train_towns = ['town01', 'town03', 'town04', 'town06', ]
     # val_towns = ['town02', 'town05', 'town07', 'town10']
@@ -53,11 +54,16 @@ class GlobalConfig:
     angle_thresh = 0.3  # outlier control detection angle
     dist_thresh = 10  # target point y-distance for outlier filtering
 
+    # speed_weight = 0.05
+    # value_weight = 0.001
+    # features_weight = 0.05
+
     speed_weight = 0.05
-    value_weight = 0.001
-    features_weight = 0.05
+    value_weight = 0.0
+    features_weight = 0.0
 
     rl_ckpt = "roach/log/ckpt_11833344.pth"
+    # rl_ckpt = "/home/iramirez/Pytorch/TCP/roach/log/ckpt_11833344.pth"
 
     img_aug = True
 

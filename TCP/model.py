@@ -33,6 +33,29 @@ class TCP(nn.Module):
 
 	def __init__(self, config):
 		super().__init__()
+
+		from ncps.wirings import NCP
+		from ncps.torch import LTC, CfC
+		import torch.nn.functional as F
+
+		wiring = NCP(
+			inter_neurons=18,
+			command_neurons=12,
+			motor_neurons=4, # mu:2, sigma:2, j_traj/j_ctrol
+			sensory_fanout=6,
+			inter_fanout=4,
+			recurrent_command_synapses=4,
+			motor_fanin=6,
+			seed=2222)
+		latent_features = 256
+		rnn='ltc'
+		if rnn == 'ltc':
+			self.ltc_model = LTC(latent_features, wiring, batch_first=True, mixed_memory=False)
+		elif rnn == 'cfc':
+			self.ltc_model = CfC(latent_features, wiring, batch_first=True, mixed_memory=False)
+
+		self.last_state = None
+
 		self.config = config
 
 		self.turn_controller = PIDController(K_P=config.turn_KP, K_I=config.turn_KI, K_D=config.turn_KD, n=config.turn_n)
@@ -174,28 +197,44 @@ class TCP(nn.Module):
 		outputs['sigma_branches'] = self.dist_sigma(policy)
 
 		x = j_ctrl
-		mu = outputs['mu_branches']
-		sigma = outputs['sigma_branches']
+		# mu = outputs['mu_branches']
+		# sigma = outputs['sigma_branches']
 		future_feature, future_mu, future_sigma = [], [], []
 
 		# initial hidden variable to GRU
 		h = torch.zeros(size=(x.shape[0], 256), dtype=x.dtype).type_as(x)
 
-		for _ in range(self.config.pred_len):
-			x_in = torch.cat([x, mu, sigma], dim=1)
-			h = self.decoder_ctrl(x_in, h)
-			wp_att = self.wp_att(torch.cat([h, traj_hidden_state[:, _]], 1)).view(-1, 1, 8, 29)
-			new_feature_emb = torch.sum(cnn_feature*wp_att, dim=(2, 3))
-			merged_feature = self.merge(torch.cat([h, new_feature_emb], 1))
-			dx = self.output_ctrl(merged_feature)
-			x = dx + x
+		############# LTC #############################
 
-			policy = self.policy_head(x)
-			mu = self.dist_mu(policy)
-			sigma = self.dist_sigma(policy)
+		state = None
+		for _ in range(self.config.pred_len):
+			# x = x.view(b, s, -1)
+			if state is None:
+				x_, state = self.ltc_model.forward(x, hx=None)
+			else:
+				x_, state = self.ltc_model.forward(x, hx=state)
+
+			mu = nn.Softplus()(x_[:,0:2])
+			sigma = nn.Softplus()(x_[:,2:])
 			future_feature.append(x)
 			future_mu.append(mu)
 			future_sigma.append(sigma)
+	############# END LTC #########################
+		# for _ in range(self.config.pred_len):
+		# 	x_in = torch.cat([x, mu, sigma], dim=1)
+		# 	h = self.decoder_ctrl(x_in, h)
+		# 	wp_att = self.wp_att(torch.cat([h, traj_hidden_state[:, _]], 1)).view(-1, 1, 8, 29)
+		# 	new_feature_emb = torch.sum(cnn_feature*wp_att, dim=(2, 3))
+		# 	merged_feature = self.merge(torch.cat([h, new_feature_emb], 1))
+		# 	dx = self.output_ctrl(merged_feature)
+		# 	x = dx + x
+		#
+		# 	policy = self.policy_head(x)
+		# 	mu = self.dist_mu(policy)
+		# 	sigma = self.dist_sigma(policy)
+		# 	future_feature.append(x)
+		# 	future_mu.append(mu)
+		# 	future_sigma.append(sigma)
 
 
 		outputs['future_feature'] = future_feature

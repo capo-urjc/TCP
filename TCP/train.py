@@ -17,6 +17,9 @@ from TCP.model import TCP
 from TCP.data import CARLA_Data
 from TCP.config import GlobalConfig
 
+import matplotlib.pyplot as plt
+from utils import plot_img, plot_waypoint
+
 
 class TCP_planner(pl.LightningModule):
 	def __init__(self, config, lr):
@@ -159,7 +162,7 @@ if __name__ == "__main__":
 	parser.add_argument('--val_every', type=int, default=3, help='Validation frequency (epochs).')
 	parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
 	parser.add_argument('--logdir', type=str, default='log', help='Directory to log data to.')
-	parser.add_argument('--gpus', type=int, default=1, help='number of gpus')
+	parser.add_argument('--gpus', type=int, default=4, help='number of gpus')
 
 	args = parser.parse_args()
 	args.logdir = os.path.join(args.logdir, args.id)
@@ -170,6 +173,11 @@ if __name__ == "__main__":
 	# Data
 	train_set = CARLA_Data(root=config.root_dir_all, data_folders=config.train_data, img_aug = config.img_aug)
 	print(len(train_set))
+
+	sample =  train_set[0]
+	plot_img(sample), plt.show()
+	plot_waypoint(sample), plt.show()
+
 	val_set = CARLA_Data(root=config.root_dir_all, data_folders=config.val_data,)
 	print(len(val_set))
 
@@ -186,7 +194,7 @@ if __name__ == "__main__":
 											gpus = args.gpus,
 											accelerator='ddp',
 											sync_batchnorm=True,
-											plugins=DDPPlugin(find_unused_parameters=False),
+											plugins=DDPPlugin(find_unused_parameters=True),
 											profiler='simple',
 											benchmark=True,
 											log_every_n_steps=1,
@@ -194,8 +202,7 @@ if __name__ == "__main__":
 											callbacks=[checkpoint_callback,
 														],
 											check_val_every_n_epoch = args.val_every,
-											max_epochs = args.epochs
-											)
+											max_epochs = args.epochs)
 
 	trainer.fit(TCP_model, dataloader_train, dataloader_val)
 

@@ -255,6 +255,6 @@ dependencies:
       - xmlschema==1.0.18
       - yaspin==2.1.0
 variables:
-  CARLA_ROOT: /mnt/raid/datasets/Carla-Leaderboard/v0.9.10/CARLA
-  LEADERBOARD_ROOT: /home/dmariaa/TCP/leaderboard
-prefix: /home/dmariaa/miniconda3/envs/TCP
+  CARLA_ROOT: /raid/code/CARLA_Leaderboard/v0.9.10.1/
+  LEADERBOARD_ROOT: /home/iramirez/Pytorch/TCP/leaderboard
+prefix: /home/iramirez/anaconda3/envs/TCP

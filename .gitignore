@@ -245,3 +245,4 @@ data/
 log/
 tcp_carla_data/
 tcp_carla_data
+results_TCP.json
